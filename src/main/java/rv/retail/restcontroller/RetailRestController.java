@@ -3,6 +3,10 @@
  */
 package rv.retail.restcontroller;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +28,7 @@ import rv.retail.manager.RetailStorageManager;
  * @version 1.0
  *
  */
-
+@Api(value="/rv/retail",description="Rashmi-Retail-APP REst apis.",produces ="application/json")
 @org.springframework.web.bind.annotation.RestController
 @RequestMapping("/")
 public class RetailRestController {
@@ -48,7 +52,7 @@ public class RetailRestController {
 			error.setMessage (ex.getMessage());
 		}else{
 			error.setErrorCode(500);
-			error.setMessage (" Internal Server Error. Contact support center" +ex.getMessage());
+			error.setMessage (" Internal Server Error. Detailed error is:" +ex.getMessage());
 		}
 		error.setMessage (ex.getMessage());
 		return new ResponseEntity<ErrorResponse>(error, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -58,8 +62,16 @@ public class RetailRestController {
 	 *  HTTP GET method to get the product details and price for a given productId.
 	 * @param productId Unique identifier for the product.
 	 * @return ProductDetails  object that has the details of product.
-	 * @throws Exception Generic exception.
+	 * @throws Exception exception.
 	 */
+	@ApiOperation(value = "get Product details by its unique identifier.",
+			notes = "The successful invocation of this request will give the product name and its price information")
+	@ApiResponses(value = {
+			@ApiResponse(code = 500, message = "Returned when there internal errors."),
+			@ApiResponse(code = 404, message = "Returned when there is no product pre created"),
+			@ApiResponse(code = 400, message = "Returned when inputs are invalid")
+
+	})
 	@RequestMapping(method=RequestMethod.GET, value="/product/{productId}")
 	public ProductDetails getProductDetails(@PathVariable("productId") Long productId) throws Exception  {
 		
@@ -82,6 +94,11 @@ public class RetailRestController {
 	 * @return boolean Updated successfully or not.
 	 * @throws Exception Generic exception.
 	 */
+	@ApiOperation(value = "update entry for Product Price details.",
+			notes = "The successful invocation of this request will result in updation of the PRICE of the specified product and price informations")
+	@ApiResponses(value = {
+			@ApiResponse(code = 500, message = "Returned when there internal errors.")
+	})
 	@RequestMapping(method=RequestMethod.PUT, value="/product/{productId}")
 	public boolean updateProductPrice(@PathVariable("productId") Long productId, @RequestBody ProductDetails price) throws Exception{
 		
@@ -93,12 +110,20 @@ public class RetailRestController {
 		return retailStorageManager.updateProductPrice(productId, price.getPriceDetails().getPrice());
 	}
 
+	/**
+	 * HTTP POST method to create and entry for price of the product
+	 * @param productId Id of the product to be added.
+	 * @param price Price to be added.
+	 * @throws Exception Generic exception.
+	 */
 
-
+	@ApiOperation(value = "create entry for Product Price details.",
+			notes = "The successful invocation of this request will result in creation of the specified product and price informations")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returned when created successfully."),
+			@ApiResponse(code = 500, message = "Returned when there internal errors.")
+	})
 	@RequestMapping(method=RequestMethod.POST, value="/product/{productId}", consumes = "application/json")
-
-
-
 	public ResponseEntity<Object> createProductPrice(@PathVariable("productId") Long productId, @RequestBody ProductDetails price){
 		if (productId == null || productId <= 0) {
 			throw new IllegalArgumentException("The Product Identifier can not be null or empty.");
